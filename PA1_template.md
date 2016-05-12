@@ -4,6 +4,17 @@
 ## Loading and preprocessing the data
 
 ```
+## 
+## Attaching package: 'signal'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, poly
+```
+
+```
 ##       steps       date interval            datetime
 ## 17563    NA 2012-11-30     2330 2012-11-30 23:30:00
 ## 17564    NA 2012-11-30     2335 2012-11-30 23:35:00
@@ -57,28 +68,5 @@
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-
-```r
-library(chron)
-Sys.setlocale("LC_TIME","C")
-```
-
-```
-## [1] "C"
-```
-
-```r
-act.no.NAs$weekday.name <- weekdays(act.no.NAs$datetime)
-act.no.NAs$Weekday[is.weekend(act.no.NAs$date)] <- 'weekend'
-act.no.NAs$Weekday[!is.weekend(act.no.NAs$date)] <- 'weekday'
-act.no.NAs$Weekday <- factor(act.no.NAs$Weekday)
-avgStepsEachInterval <- aggregate(steps  ~ interval + Weekday, data = act.no.NAs, FUN =  mean, simplify = TRUE )
-avgStepsEachInterval$interval <- as.POSIXct(sprintf("%04d",as.numeric(as.character(avgStepsEachInterval$interval))),format ='%H%M',tz = "IDT")
-pl<- ggplot( mapping = aes(x= interval, y = steps, group = 1), data = avgStepsEachInterval) + 
-     geom_line() + scale_x_datetime(date_breaks = '1 hour', date_labels ='%H:%M') +
-     facet_grid(Weekday~.)
-print(pl)
-```
-
 ![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
