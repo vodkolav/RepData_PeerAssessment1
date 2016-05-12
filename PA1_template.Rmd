@@ -2,24 +2,95 @@
 title: "Reproducible Research: Peer Assessment 1"
 output: 
   html_document:
-    keep_md: true
+    fig_caption: yes
+    fig_width: 10
+    keep_md: yes
 ---
 
 
 ## Loading and preprocessing the data
-
-
+```{r, echo=FALSE}
+setwd('~/Coursera/4 - Reproducible Research/Week 2/Project')
+library(ggplot2)
+library(scales)
+library(signal)
+activity <- read.csv('activity.csv')
+pp <-cbind(as.character(activity$date),sprintf("%04d",activity$interval))               
+activity$interval <- (pp[,2])
+activity$datetime <- as.POSIXct(paste(pp[,1],pp[,2],sep='-'), format = '%F-%H%M')
+tail(activity)
+```
 
 ## What is mean total number of steps taken per day?
+```{r, echo=FALSE}
+stepsEachDay <- aggregate(steps ~ date, data = activity, sum)
+pl<- ggplot( mapping = aes(x= steps), data = stepsEachDay)  + 
+     geom_histogram(bins = 30)
+print(pl)
+'Mean and median number of steps each day:'
+summary(stepsEachDay$steps)  
 
-
+```
 
 ## What is the average daily activity pattern?
+```{r, echo=FALSE}
 
+#activity$interval <- factor(activity$interval)
+avgStepsEachInterval <- aggregate(steps ~ interval, data = activity, FUN =  mean, simplify = TRUE )
+avgStepsEachInterval$interval <- as.POSIXct(sprintf("%04d",avgStepsEachInterval$interval),format ='%H%M',tz = "IDT")
+#avgStepsEachInterval$interval <- as.numeric(avgStepsEachInterval$interval)
+pl<- ggplot( mapping = aes(x= interval, y = steps, group = 1), data = avgStepsEachInterval)  + 
+     geom_line() + scale_x_datetime(date_breaks = '1 hour', date_labels ='%H:%M')
+#), limits = c(avgStepsEachInterval$interval[1],avgStepsEachInterval$interval[length(avgStepsEachInterval$interval)]))
+#xlim(c(avgStepsEachInterval$interval[1],avgStepsEachInterval$interval[length(interval)]))
+#scale_x_discrete(breaks= decimate(avgStepsEachInterval$interval,q = 10))
+print(pl)
+maxSteps <- avgStepsEachInterval$interval[which(avgStepsEachInterval$steps == max(avgStepsEachInterval$steps))]
+show(paste('maximum number of steps is at: ', as.character.POSIXt(maxSteps, format = '%H:%M')))
+
+```
 
 
 ## Imputing missing values
 
+```{r, echo=FALSE}
+paste('Total rows wit NA values:', sum(is.na(activity$steps)))
+act.no.NAs <- activity
+act.no.NAs$interval <- as.character(act.no.NAs$interval)
+naInds <- which(is.na(act.no.NAs$steps))
+nas <- cbind(naInds, act.no.NAs[naInds,'interval'] )
+colnames(nas)<- c('naIDs', 'interval')
+avgStepsEachInterval <- aggregate(steps ~ interval, data = activity, FUN =  mean, simplify = TRUE )
+avgStepsEachInterval$interval <- as.character(avgStepsEachInterval$interval)
+nas <- merge(x = nas, y = avgStepsEachInterval, by = 'interval', all.x = TRUE )
+nas$interval <- as.character(nas$interval)
+nas$naIDs <- as.character(nas$naIDs)
+act.no.NAs[nas$naIDs,'steps'] <- nas[,'steps']
+
+stepsEachDay <- aggregate(steps ~ date, data = act.no.NAs, sum)
+pl<- ggplot( mapping = aes(x= steps), data = stepsEachDay)  + 
+     geom_histogram(bins = 30)
+print(pl)
+'Mean and median number of steps each day:'
+summary(stepsEachDay$steps)  
+show(paste('The values have minor differences'))
+
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+library(chron)
+Sys.setlocale("LC_TIME","C")
+act.no.NAs$weekday.name <- weekdays(act.no.NAs$datetime)
+act.no.NAs$Weekday[is.weekend(act.no.NAs$date)] <- 'weekend'
+act.no.NAs$Weekday[!is.weekend(act.no.NAs$date)] <- 'weekday'
+act.no.NAs$Weekday <- factor(act.no.NAs$Weekday)
+avgStepsEachInterval <- aggregate(steps  ~ interval + Weekday, data = act.no.NAs, FUN =  mean, simplify = TRUE )
+avgStepsEachInterval$interval <- as.POSIXct(sprintf("%04d",as.numeric(as.character(avgStepsEachInterval$interval))),format ='%H%M',tz = "IDT")
+pl<- ggplot( mapping = aes(x= interval, y = steps, group = 1), data = avgStepsEachInterval) + 
+     geom_line() + scale_x_datetime(date_breaks = '1 hour', date_labels ='%H:%M') +
+     facet_grid(Weekday~.)
+print(pl)
+```
+
