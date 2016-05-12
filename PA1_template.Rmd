@@ -10,7 +10,7 @@ output:
 
 
 ## Loading and preprocessing the data
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 setwd('~/Coursera/4 - Reproducible Research/Week 2/Project')
 library(ggplot2)
 library(scales)
@@ -23,7 +23,7 @@ tail(activity)
 ```
 
 ## What is mean total number of steps taken per day?
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 stepsEachDay <- aggregate(steps ~ date, data = activity, sum) #total number of steps taken per day
 pl<- ggplot( mapping = aes(x= steps), data = stepsEachDay)  + 
      geom_histogram(bins = 30)
@@ -34,7 +34,7 @@ summary(stepsEachDay$steps)
 ```
 
 ## What is the average daily activity pattern?
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 #calculate average number of steps every 5-minute interval 
 avgStepsEachInterval <- aggregate(steps ~ interval, data = activity, FUN =  mean, simplify = TRUE )
 #and convert interval to POSIXct so that plot will have time ticks labels on x axis
@@ -54,7 +54,7 @@ show(paste('maximum number of steps is at: ', as.character.POSIXt(maxSteps, form
 
 ## Imputing missing values
 
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 paste('Total rows wit NA values:', sum(is.na(activity$steps)))
 act.no.NAs <- activity 
 #act.no.NAs$interval <- as.character(act.no.NAs$interval)
@@ -82,7 +82,7 @@ show(paste('The values have minor differences'))
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 library(chron)
 #Sys.setlocale("LC_TIME","C")
 act.no.NAs$weekday.name <- weekdays(act.no.NAs$datetime)#calculate name of day so that I can verify that is.weekend worked correct
